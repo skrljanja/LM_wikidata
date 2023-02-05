@@ -1,0 +1,10 @@
+for HDIM in 25 50 
+do
+    for LR in 0.5 0.1 0.05
+    do
+        for LOOKBACK in 0 2 5
+        do
+            python3 runner.py 'train-lm-rnn' '/afs/inf.ed.ac.uk/user/s19/s1970498/nlu_cw1/cw1/nluplus_cw1/data' $HDIM $LOOKBACK $LR >> parameter_tune.txt
+        done
+    done
+done 
