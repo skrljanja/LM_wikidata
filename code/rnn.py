@@ -131,13 +131,13 @@ class RNN(Model):
         vector_1 = np.ones_like(s[0])
         W_T = self.W.transpose()
 
-        t_f = len(x)
+        t = len(x) - 1
         d_onehot = make_onehot(d[0], self.out_vocab_size)
-        x_onehot = make_onehot(x[t_f], self.vocab_size)
-        delta_out = d_onehot - y[t_f]
+        x_onehot = make_onehot(x[-1], self.vocab_size)
+        delta_out = d_onehot - y[-1]
         
         
-        delta_in = np.multiply(W_T@delta_out , np.multiply(s[t],(vector_1 - s[t])))
+        delta_in = np.multiply(W_T@delta_out , np.multiply(s[-1],(vector_1 - s[t])))
         self.deltaW += np.outer(delta_out, s[t])
         self.deltaV += np.outer(delta_in, x_onehot)
         self.deltaU += np.outer(delta_in, s[t-1])

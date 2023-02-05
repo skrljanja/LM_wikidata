@@ -65,7 +65,9 @@ class Runner(object):
         '''
         
         y, s = self.model.predict(x)
-        loss += 1 - np.dot(make_onehot(d[0], self.model.out_vocab_size), y[-1])
+        loss = 1 - np.dot(make_onehot(d[0], self.model.out_vocab_size), y[-1])
+        if loss > 1:
+            print("inlavid loss value: " + loss)
 
         return loss
 
@@ -81,7 +83,7 @@ class Runner(object):
         '''
 
         y, s = self.model.predict(x)
-        if (y[-1] == d[0]):
+        if (np.argmax(y[-1]) == d[0]):
             return 1
 
         return 0
@@ -95,18 +97,22 @@ class Runner(object):
 
         return mean_loss		average loss over all words in D
         '''
-
+        
+        loss_sum = sum([len(d) for d in D])
+        loss = sum([self.compute_loss(X[i], D[i]) for i in range(len(X))]) / loss_sum
+        
+        """
         mean_loss = 0.
         words = 0
 
         if len(D) == len(X):
             for i in range(len(X)):
                 mean_loss += self.compute_loss(X[i], D[i])
-                words += len(D[i])
-                
-        mean_loss = mean_loss/words
+                words += len(X[i])
+        """        
+        #mean_loss = mean_loss/words
 
-        return mean_loss
+        return loss
     
     def train(self, X, D, X_dev, D_dev, epochs=10, learning_rate=0.5, anneal=5, back_steps=0, batch_size=100,
               min_change=0.0001, log=True):
@@ -439,21 +445,24 @@ if __name__ == "__main__":
 
         ##########################
 
+        print("hdim: {},  lookback: {} , learning rate: {}".format(hdim, lookback, lr))
         rnn = RNN(vocab_size, hdim, vocab_size)
         runner = Runner(rnn)
         
-        runner.train(X_train, D_train, X_dev, D_dev, back_steps = lookback, learning_rate = lr, log=False)
-        
+        runner.train(X_train, D_train, X_dev, D_dev, epochs = 10, back_steps = lookback, learning_rate = lr, log=False)
+
         
         
         
         ##########################
+        run_loss = runner.compute_mean_loss(X_dev, D_dev)
 
-        run_loss = -1
-        adjusted_loss = -1
+        adjusted_loss = adjust_loss(run_loss, fraction_lost, q)
 
         print("Unadjusted: %.03f" % np.exp(run_loss))
+        print(run_loss)
         print("Adjusted for missing vocab: %.03f" % np.exp(adjusted_loss))
+        print(adjusted_loss)
 
     if mode == "train-np-rnn":
         '''
@@ -495,12 +504,17 @@ if __name__ == "__main__":
 
         X_dev = X_dev[:dev_size]
         D_dev = D_dev[:dev_size]
+        
+        
 
         ##########################
-        # --- your code here --- #
+        rnn = RNN(vocab_size, hdim, vocab_size)
+        runner = Runner(rnn)
+        
+        runner.train_np(X_train, D_train, X_dev, D_dev, back_steps = lookback, learning_rate = lr, log=False)
+        
+        acc = sum([runner.compute_acc_np(X_dev[i], D_dev[i]) for i in range(len(X_dev))]) / len(X_dev)
         ##########################
-
-        acc = 0.
 
         print("Accuracy: %.03f" % acc)
 
@@ -546,7 +560,10 @@ if __name__ == "__main__":
         D_dev = D_dev[:dev_size]
 
         ##########################
-        # --- your code here --- #
+        gru = GRU(vocab_size, hdim, vocab_size)
+        runner = Runner(gru)
+        
+        runner.train_np(X_train, D_train, X_dev, D_dev, back_steps = lookback, learning_rate = lr, log=False)
         ##########################
 
         acc = 0.
