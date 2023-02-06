@@ -50,12 +50,13 @@ class GRU(GRUAbstract):
 
         '''
 
-        x_oh = rnnmath.make_onehot(x, self.vocab_size)
-        r = rnnmath.sigmoid(self.Vx @ x_oh + self.Uz @ s_previous)
+        x_oh = make_onehot(x, self.vocab_size)
+        r = sigmoid(self.Vr @ x_oh + self.Uz @ s_previous)
+        z = sigmoid (self.Vz @ x_oh + self.Uh @ (np.multiply(r,s_previous)))
         h = np.tanh(self.Vh @ x_oh + self.Uh @ (np.multiply(r, s_previous)))
         s = np.multiply(z, s_previous) + np.multiply((1-z), h)
         net_out = self.W @ s
-        y = rnnmath.softmax(net_out)
+        y = softmax(net_out)
         
         return y, s, h, z, r
 
@@ -79,8 +80,8 @@ class GRU(GRUAbstract):
         '''
 
         delta_out = (make_onehot(d[0], self.out_vocab_size) - y[-1]) 
-        t = len(y)
-        self.backward(x, t, s, delta_output)
+        t = len(y) - 1
+        self.backward(x, t, s, delta_out)
 
     def acc_deltas_bptt_np(self, x, d, y, s, steps):
         '''

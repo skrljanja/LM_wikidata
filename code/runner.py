@@ -511,11 +511,12 @@ if __name__ == "__main__":
         rnn = RNN(vocab_size, hdim, vocab_size)
         runner = Runner(rnn)
         
-        runner.train_np(X_train, D_train, X_dev, D_dev, back_steps = lookback, learning_rate = lr, log=False)
+        runner.train_np(X_train, D_train, X_dev, D_dev, epochs = 10, back_steps = lookback, learning_rate = lr, log=False)
         
         acc = sum([runner.compute_acc_np(X_dev[i], D_dev[i]) for i in range(len(X_dev))]) / len(X_dev)
         ##########################
-
+        
+        print("hdim: {},  lookback: {} , learning rate: {}".format(hdim, lookback, lr))
         print("Accuracy: %.03f" % acc)
 
     if mode == "train-np-gru":
@@ -563,9 +564,10 @@ if __name__ == "__main__":
         gru = GRU(vocab_size, hdim, vocab_size)
         runner = Runner(gru)
         
-        runner.train_np(X_train, D_train, X_dev, D_dev, back_steps = lookback, learning_rate = lr, log=False)
+        runner.train_np(X_train, D_train, X_dev, D_dev, epochs=10, back_steps = lookback, learning_rate = lr, log=False)
         ##########################
 
-        acc = 0.
+        acc = sum([runner.compute_acc_np(X_dev[i], D_dev[i]) for i in range(len(X_dev))]) / len(X_dev)
 
+         print("hdim: {},  lookback: {} , learning rate: {}".format(hdim, lookback, lr))
         print("Accuracy: %.03f" % acc)
